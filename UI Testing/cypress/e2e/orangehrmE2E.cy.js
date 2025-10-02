@@ -4,8 +4,7 @@ describe("OrangeHRM E2E Flow", () => {
 
   const empFirst = "Cemong";
   const empLast = "Gembul";
-  const empName = "Cemong Gembul";
-  const empUsername = "Cemong.test";
+  const empUsername = "Cemong.test123";
   const empPassword = "Test123!";
 
   beforeEach(() => {
@@ -140,49 +139,72 @@ describe("OrangeHRM E2E Flow", () => {
 
   // 3. Karyawan request cuti
   it("Employee request leave and admin approve", () => {
-    // Login as employee
-    cy.get("input[name='username']").type(empUsername);
-    cy.get("input[name='password']").type(empPassword);
-    cy.get("button[type='submit']").click();
+  // === Login as Employee ===
+  cy.get("input[name='username']").type(empUsername);
+  cy.get("input[name='password']").type(empPassword);
+  cy.get("button[type='submit']").click();
 
-    cy.contains("Leave").click();
-    cy.contains("Apply").click();
-    cy.get("input[placeholder='yyyy-mm-dd']").first().type("2025-10-10");
-    cy.get("input[placeholder='yyyy-mm-dd']").last().type("2025-10-12");
-    cy.get("button[type='submit']").click();
+  cy.contains("Leave").click();
+  cy.contains("Apply").click();
 
-    // Assertion
-    cy.contains("Successfully Saved").should("exist");
+  // Pilih Leave Type
+  cy.get("div.oxd-select-wrapper").eq(0).click();
+  cy.contains(".oxd-select-option", "Vacation").click();
 
-    // Logout
-    cy.get(".oxd-userdropdown").click();
-    cy.contains("Logout").click();
+  // Isi From Date
+  cy.get("input[placeholder='yyyy-dd-mm']").eq(0).clear().type("2025-01-15");
 
-    // Login as admin
-    cy.get("input[name='username']").type(adminUser);
-    cy.get("input[name='password']").type(adminPass);
-    cy.get("button[type='submit']").click();
+  // Isi To Date
+  cy.get("input[placeholder='yyyy-dd-mm']").eq(1).clear().type("2025-01-17");
 
-    cy.contains("Leave").click();
-    cy.contains("Leave List").click();
-    cy.get("button[type='submit']").click(); // search leave
-    cy.contains(empFirst).click();
+  // Pilih Partial Days -> All Days
+cy.get("div.oxd-select-wrapper").eq(1).click();   // buka dropdown
+cy.wait(500); // beri jeda biar opsi render
+cy.contains("All Days").click({ force: true });  // pilih opsi
 
-    // Approve
-    cy.contains("Approve").click();
-    cy.contains("Approved").should("exist");
+  // Isi Comments
+  cy.get("textarea").eq(0).type("Mengajukan cuti penuh untuk liburan.");
 
-    // Logout and re-login as employee
-    cy.get(".oxd-userdropdown").click();
-    cy.contains("Logout").click();
+  // Klik Apply
+  cy.contains("button", "Apply").click();
 
-    cy.get("input[name='username']").type(empUsername);
-    cy.get("input[name='password']").type(empPassword);
-    cy.get("button[type='submit']").click();
+  // Assertion sukses
+  cy.contains("Successfully Saved", { timeout: 5000 }).should("exist");
 
-    cy.contains("Leave").click();
-    cy.contains("My Leave").click();
+  // Logout employee
+  cy.get(".oxd-userdropdown").click();
+  cy.contains("Logout").click();
 
-    cy.contains("Approved").should("exist");
-  });
+  // === Login as Admin ===
+  cy.get("input[name='username']").type(adminUser);
+  cy.get("input[name='password']").type(adminPass);
+  cy.get("button[type='submit']").click();
+
+  cy.contains("Leave").click();
+  cy.contains("Leave List").click();
+
+  // Cari leave employee
+  cy.get("button[type='submit']").click(); // klik Search
+  cy.contains(empFirst).click(); // buka leave employee
+
+  // Approve leave
+  cy.contains("Approve").click();
+  cy.contains("Approved", { timeout: 5000 }).should("exist");
+
+  // Logout admin
+  cy.get(".oxd-userdropdown").click();
+  cy.contains("Logout").click();
+
+  // === Re-login as Employee ===
+  cy.get("input[name='username']").type(empUsername);
+  cy.get("input[name='password']").type(empPassword);
+  cy.get("button[type='submit']").click();
+
+  cy.contains("Leave").click();
+  cy.contains("My Leave").click();
+
+  // Pastikan status approved muncul
+  cy.contains("Approved").should("exist");
+});
+
 });
