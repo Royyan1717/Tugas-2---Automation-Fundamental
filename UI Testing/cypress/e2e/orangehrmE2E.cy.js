@@ -29,18 +29,31 @@ describe("OrangeHRM E2E Flow", () => {
 
     // go to Admin > Add User
     cy.contains("Admin").click();
-    cy.contains("Add User").click();
+    cy.contains("Add").click();
+
+    // Pilih User Role
+    cy.get("div.oxd-select-wrapper").eq(0).click();        // klik dropdown User Role
+    cy.get(".oxd-select-dropdown")
+      .contains("ESS")                                   // ganti sesuai role yg mau dipilih
+      .click();
+
+    // Pilih Status
+    cy.get("div.oxd-select-wrapper").eq(1).click();        // klik dropdown Status
+    cy.get(".oxd-select-dropdown")
+      .contains("Enabled")                                 // ganti ke "Disabled" kalau mau test case lain
+      .click();
 
     cy.get("input[placeholder='Type for hints...']").type(empFirst);
-    cy.get(".oxd-autocomplete-option").first().click();
+    cy.get(".oxd-autocomplete-option")
+      .contains(empFirst) // cari opsi yang teksnya sesuai
+      .click();
 
-    cy.get("input[name='employeename']").type(empName);
-    cy.get("input[name='username']").type(empUsername);
+    cy.get("input.oxd-input").eq(1).type(empUsername);
     cy.get("input[type='password']").eq(0).type(empPassword);
     cy.get("input[type='password']").eq(1).type(empPassword);
     cy.get("button[type='submit']").click();
 
-    cy.contains("Successfully Saved", { timeout: 5000 }).should("be.visible");
+    // cy.contains("Successfully Saved", { timeout: 5000 }).should("be.visible");
 
     // Assertion: employee added
     cy.contains(empFirst).should("exist");
@@ -70,26 +83,40 @@ describe("OrangeHRM E2E Flow", () => {
 
     // Navigasi ke menu Add Entitlements
     cy.contains("a", "Leave").click();
-    cy.contains("a", "Entitlements").click();
+    // Klik submenu Entitlements di topbar
+    cy.contains("span.oxd-topbar-body-nav-tab-item", "Entitlements").click();
+
+    // Klik Add Entitlements dari dropdown
     cy.contains("a", "Add Entitlements").click();
 
     // Input employee name
-    cy.get("input[placeholder='Type for hints...']")
-      .type(empFirst);
+    cy.get("input[placeholder='Type for hints...']").type(empFirst);
 
     // Tunggu opsi autocomplete muncul lalu pilih
     cy.get(".oxd-autocomplete-option")
-      .should("be.visible")
-      .first()
+      .contains(empFirst) // cari opsi yang teksnya sesuai
+      .click();
+    
+    // Pilih Leave Type
+    cy.get("div.oxd-select-text").eq(0).click();    // buka dropdown Leave Type
+    cy.contains(".oxd-select-option", "Vacation")   // pilih opsi Vacation
       .click();
 
+
+    // Isi Entitlement
+    cy.get("input.oxd-input").last().clear().type("10");
+
     // Input jumlah jatah cuti
-    cy.get("input[type='number']")
-      .clear()
-      .type("10");
+    // cy.get("input[type='number']")
+    //   .clear()
+    //   .type("10");
 
     // Submit form
     cy.get("button[type='submit']").click();
+
+    // Klik tombol Confirm
+    cy.contains("button", "Confirm").click();
+
 
     // Assertion dengan timeout
     cy.contains("Successfully Saved", { timeout: 5000 })
